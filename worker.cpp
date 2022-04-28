@@ -2,29 +2,10 @@
 
 using namespace std;
 
-void procStop(int id)
-{
-    int status;
-    list<worker *>::iterator workerIt;
-    int pid = waitpid(-1, &status, WUNTRACED | WCONTINUED);
-    cout << "Pid is: " << pid << " status is " << status << "\n";
-    if (WIFSTOPPED(status))
-    {
-        for (workerIt = workerList->begin(); workerIt != workerList->end(); ++workerIt)
-        {
-            if ((*workerIt)->id == pid)
-            {
-                cout << "Reset worker\n";
-                (*workerIt)->busy = false;
-            }
-        }
-    }
 
-    return;
-}
-
-void workerOutput(list<string> *domainList, string fileName)
+void workerOutput(list<string> *siteList, string fileName)
 {
+    // Given a list of locations, count their number of appearances and print to output file
     list<site *> siteCounter;
     list<site *>::iterator siteIt;
     list<string>::iterator domainIt;
@@ -34,9 +15,9 @@ void workerOutput(list<string> *domainList, string fileName)
     int outFile;
     bool flag;
 
-    if (domainList->size() == 0)
+    // If the list is empty, create empty file
+    if (siteList->size() == 0)
     {
-        cout << "Gets here\n";
         outFile = open(fileNameOut.c_str(), O_CREAT | O_RDWR | O_TRUNC, PERMS);
         if (outFile == -1)
         {
@@ -47,11 +28,15 @@ void workerOutput(list<string> *domainList, string fileName)
 
         return;
     }
-    for (domainIt = domainList->begin(); domainIt != domainList->end(); ++domainIt)
+
+    // Loop for every site in the list
+    for (domainIt = siteList->begin(); domainIt != siteList->end(); ++domainIt)
     {
         flag = false;
+        // Check if we have found it at least once before
         for (siteIt = siteCounter.begin(); siteIt != siteCounter.end(); ++siteIt)
         {
+            // If we have, increase the appearances count by one
             if ((*siteIt)->domain.compare(*domainIt) == 0)
             {
                 (*siteIt)->counter++;
@@ -59,6 +44,7 @@ void workerOutput(list<string> *domainList, string fileName)
                 break;
             }
         }
+        // Else, add the site to a list, containing the name of the site plus the number of appearances
         if (flag == false)
         {
             newSite = new site;
@@ -68,13 +54,13 @@ void workerOutput(list<string> *domainList, string fileName)
         }
     }
 
+    // For every site, write to the output file its name and number of appearances, using the list we created
+    // Create a big string, write to the file in one go
     for (siteIt = siteCounter.begin(); siteIt != siteCounter.end(); ++siteIt)
     {
         toWrite += (*siteIt)->domain + " " + to_string((*siteIt)->counter) + "\n";
-        cout << "TO WRITE " << toWrite << "\n";
     }
-    cout << toWrite;
-
+    
     outFile = open(fileNameOut.c_str(), O_CREAT | O_RDWR | O_TRUNC, PERMS);
     if (outFile == -1)
     {
@@ -100,14 +86,14 @@ void workerMain(int id)
     int fd, i, textFile, readReturn;
     char fifo[256];
     char *saveptr1;
-    strcpy(fifo, (fifoFolder + fifoNameBase).c_str());
+    strcpy(fifo, fifoNameBase.c_str());
     strcat(fifo, to_string(id).c_str());
     string text = "";
     string fileName;
     string linkStart = "http://";
     string link;
     size_t spotStart = 0;
-    list<string> domainList;
+    list<string> siteList;
     bool flag;
     while (1)
     {
@@ -116,19 +102,19 @@ void workerMain(int id)
         fd = open(fifo, O_RDONLY);
         if (read(fd, msgbuf, MSGSIZE) < 0)
         {
-            perror(" Error in reading ");
+            perror(" Error in reading filename from fifo");
             exit(5);
         }
         close(fd);
-
         fileName = string(msgbuf);
+        
+
         // Combine the filename and the path
         strcpy(localDir, directory);
         strcat(localDir, msgbuf);
 
         // Open the file, read every line and combine in a string
-        cleanBuffer(msgbuf, MSGSIZE + 1);
-
+        memset(msgbuf, 0, MSGSIZE + 1);
         textFile = open(localDir, O_RDONLY);
         readReturn = read(textFile, msgbuf, 1);
         while (readReturn > 0)
@@ -138,7 +124,7 @@ void workerMain(int id)
         }
         if (readReturn < 0)
         {
-            perror(" Error in reading ");
+            perror(" Error in reading from input file");
             exit(5);
         }
         close(textFile);
@@ -154,12 +140,11 @@ void workerMain(int id)
         while ((spotStart = text.find(linkStart)) != string::npos)
         {
             flag = true;
-            cout << "IN\n";
             link = text.substr(0, spotStart);
             link = link_remove_www(link);
             link = link_remove_space(link);
             link = link_getLocation(link);
-            domainList.push_front(link);
+            siteList.push_front(link);
 
             text.erase(0, spotStart + linkStart.length());
         }
@@ -171,12 +156,11 @@ void workerMain(int id)
             link = link_remove_www(link);
             link = link_remove_space(link);
             link = link_getLocation(link);
-            domainList.push_front(link);
+            siteList.push_front(link);
         }
-        workerOutput(&domainList, fileName);
+        workerOutput(&siteList, fileName);
         raise(SIGSTOP);
-        domainList.clear();
-        cout << "Continue\n";
+        siteList.clear();
     }
 
     exit(0);

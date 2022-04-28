@@ -34,20 +34,13 @@ std::string link_remove_space(std::string link);
 
 std::string link_getLocation(std::string link);
 
-bool checkLink(std::string link);
-
 void fixDir(char *givenPath);
-
-bool cleanBuffer(char *buffer, int size);
-
-bool isEmpty(char *buffer, int size);
 
 char *getFileName(char *token);
 
 
 extern std::string fifoNameBase;
 extern std::string outputFolder;
-extern std::string fifoFolder;
 extern std::list<pid_t> childList;
 extern std::list<std::string> ignoreList;
 extern std::list<worker *> *workerList;
