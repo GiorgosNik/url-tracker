@@ -1,7 +1,7 @@
 # url-tracker
 
 ## Description
-This project is composed of two main parts, the sniffer and the finder. 
+This project aims to track the creation of new files in a specified directory, and to then analyse the web locations mentioned in these files. It is composed of two main parts, the sniffer and the finder. 
 ### The sniffer
 This component is used to monitor a directory (by default the same one the program is placed in) for new files. If any new files are created, the sniffer finds and counts 
 the number of web locations ins URLs in the file. This information is then stored in a file, sharing the name of the created file, with the ".out" extension. The sniffer 

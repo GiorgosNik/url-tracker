@@ -22,26 +22,26 @@ int main(int argc, char *argv[])
     // Set directory to monitor, based on user input
     // Default to the current directory if no arguments are given
     if (argc == 1)
-    {   
+    {
         string defaultDir = "./";
         directory = new char[256];
         memset(directory, 0, 256);
         strcpy(directory, defaultDir.c_str());
     }
     else if (argc == 3)
-    {   // If the user has provied arguments, check the format is valid
+    { // If the user has provied arguments, check the format is valid
         if (strcmp(argv[1], pathArgument.c_str()) != 0)
         {
             cout << "Usage: ./sniffer [-p path]\n";
             exit(23);
         }
-        //If it is, set the directory
+        // If it is, set the directory
         directory = new char[strlen(argv[2]) + 100];
         memset(directory, 0, strlen(argv[2]) + 100);
         strcpy(directory, argv[2]);
     }
     else
-    {   
+    {
         // If the user provided bad input, give usage instructions
         cout << "Usage: ./sniffer [-p path]\n";
         exit(23);
@@ -51,7 +51,8 @@ int main(int argc, char *argv[])
     fixDir(directory);
 
     // Delete previous output directory
-    if(system(("rm -rf "+outputFolder).c_str()) ==-1 ){
+    if (system(("rm -rf " + outputFolder).c_str()) == -1)
+    {
         perror("Unable to delete output directory");
         exit(1);
     }
@@ -113,12 +114,17 @@ int main(int argc, char *argv[])
         while (token != NULL)
         {
             strcpy(outbuf, getFileName(token));
-            assignToWorker(outbuf, workerList, &workerCounter, &childList);
+            if (outbuf[0] != 'f' || outbuf[1] != 'i' || outbuf[2] != 'f' || outbuf[3] != 'o')
+            {
+                assignToWorker(outbuf, workerList, &workerCounter, &childList);
+                cout << "Read file: " << outbuf << " and assigned to worker\n";
+            }
+
             token = strtok_r(NULL, "\n", &saveptr);
         }
 
         // Clear the input buffer
-        memset(inbuf,0 ,MSGSIZE);
+        memset(inbuf, 0, MSGSIZE);
     }
 
     return 0;
