@@ -1,7 +1,7 @@
 #include "utils.hpp"
 
 using namespace std;
-string fifoNameBase = "fifo";
+string fifoNameBase = "/tmp/fifo";
 string outputFolder = "/tmp/snifferOut/";
 list<pid_t> childList;
 list<string> ignoreList;

@@ -83,9 +83,8 @@ void workerMain(int id)
 {
     char msgbuf[MSGSIZE + 1];
     char localDir[1000 + MSGSIZE + 1];
-    int fd, i, textFile, readReturn;
+    int fd, textFile, readReturn;
     char fifo[256];
-    char *saveptr1;
     strcpy(fifo, fifoNameBase.c_str());
     strcat(fifo, to_string(id).c_str());
     string text = "";
@@ -99,7 +98,9 @@ void workerMain(int id)
     {
         flag = false;
         // Read the filename from the fifo
+        cout<<"Worker Waiting\n";
         fd = open(fifo, O_RDONLY);
+        cout<<"Worker Received\n";
         if (read(fd, msgbuf, MSGSIZE) < 0)
         {
             perror(" Error in reading filename from fifo");

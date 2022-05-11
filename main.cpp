@@ -109,17 +109,13 @@ int main(int argc, char *argv[])
             perror(" Read from pipe ");
             exit(1);
         }
-
+        // cout << "Buffer is: " << inbuf << "\n";
         token = strtok_r(inbuf, "\n", &saveptr);
         while (token != NULL)
         {
             strcpy(outbuf, getFileName(token));
-            if (outbuf[0] != 'f' || outbuf[1] != 'i' || outbuf[2] != 'f' || outbuf[3] != 'o')
-            {
-                assignToWorker(outbuf, workerList, &workerCounter, &childList);
-                cout << "Read file: " << outbuf << " and assigned to worker\n";
-            }
-
+            assignToWorker(outbuf, workerList, &workerCounter, &childList);
+            cout << "Read file: " << outbuf << " and assigned to worker\n";
             token = strtok_r(NULL, "\n", &saveptr);
         }
 

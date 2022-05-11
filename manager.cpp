@@ -61,16 +61,15 @@ void procStop(int id)
 void assignToWorker(char *token, list<worker *> *workerList, int *workerCounter, list<pid_t> *childList)
 {
     // Given the name of a new file in the monitored directory, assign it to a worker
-    int status;
     list<worker *>::iterator workerIt;
     worker *newWorker;
-    int fd, i, nwrite;
+    int fd;
     char msgbuf[MSGSIZE + 1];
     memset(msgbuf, 0, MSGSIZE + 1);
     strcpy(msgbuf, token);
     char fifo[256];
     strcpy(fifo, fifoNameBase.c_str());
-
+    
     // First, search for free workers 
     for (workerIt = workerList->begin(); workerIt != workerList->end(); ++workerIt)
     {
@@ -78,10 +77,10 @@ void assignToWorker(char *token, list<worker *> *workerList, int *workerCounter,
         {
             // If a free worker is found, assign the file
             strcat(fifo, to_string((*workerIt)->fifoId).c_str());
-            
             // Raise the worker
             kill((*workerIt)->id, SIGCONT);
-
+            sleep(0.08);
+            kill((*workerIt)->id, SIGCONT);
             // Write the filename to the named pipe of the worker
             fd = open(fifo, O_WRONLY);
             if (write(fd, msgbuf, MSGSIZE + 1) < 0)
@@ -93,6 +92,7 @@ void assignToWorker(char *token, list<worker *> *workerList, int *workerCounter,
             return;
         }
     }
+
 
     // If we get here, no worker is free, must create a new one
     // First, add the information of the new worker to the list
@@ -120,7 +120,7 @@ void assignToWorker(char *token, list<worker *> *workerList, int *workerCounter,
 
         // Create a fifo for the new worker and write the name of the file for the worker to proccess
         strcat(fifo, to_string((*workerCounter)).c_str());
-        mkfifo(fifo, 0666);
+        mkfifo(fifo, 0777);
         fd = open(fifo, O_WRONLY);
         if (write(fd, msgbuf, MSGSIZE + 1) < 0)
         {
