@@ -79,7 +79,7 @@ void assignToWorker(char *token, list<worker *> *workerList, int *workerCounter,
             strcat(fifo, to_string((*workerIt)->fifoId).c_str());
             // Raise the worker
             kill((*workerIt)->id, SIGCONT);
-            sleep(0.08);
+            sleep(1);
             kill((*workerIt)->id, SIGCONT);
             // Write the filename to the named pipe of the worker
             fd = open(fifo, O_WRONLY);
